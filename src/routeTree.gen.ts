@@ -12,9 +12,15 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
 
+const PastLazyRouteImport = createFileRoute('/past')()
 const OrderLazyRouteImport = createFileRoute('/order')()
 const IndexLazyRouteImport = createFileRoute('/')()
 
+const PastLazyRoute = PastLazyRouteImport.update({
+  id: '/past',
+  path: '/past',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/past.lazy').then((d) => d.Route))
 const OrderLazyRoute = OrderLazyRouteImport.update({
   id: '/order',
   path: '/order',
@@ -29,31 +35,42 @@ const IndexLazyRoute = IndexLazyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
   '/order': typeof OrderLazyRoute
+  '/past': typeof PastLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
   '/order': typeof OrderLazyRoute
+  '/past': typeof PastLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexLazyRoute
   '/order': typeof OrderLazyRoute
+  '/past': typeof PastLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/order'
+  fullPaths: '/' | '/order' | '/past'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/order'
-  id: '__root__' | '/' | '/order'
+  to: '/' | '/order' | '/past'
+  id: '__root__' | '/' | '/order' | '/past'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
   OrderLazyRoute: typeof OrderLazyRoute
+  PastLazyRoute: typeof PastLazyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/past': {
+      id: '/past'
+      path: '/past'
+      fullPath: '/past'
+      preLoaderRoute: typeof PastLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/order': {
       id: '/order'
       path: '/order'
@@ -74,6 +91,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   OrderLazyRoute: OrderLazyRoute,
+  PastLazyRoute: PastLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
