@@ -1,9 +1,5 @@
 import { usePizzaOfTheDay } from './usePizzaOfTheDay';
-
-const intl = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-});
+import { intl } from './utils/currency';
 
 const PizzaOfTheDay = () => {
   const pizzaOfTheDay = usePizzaOfTheDay();
