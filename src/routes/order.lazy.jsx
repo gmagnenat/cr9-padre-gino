@@ -15,28 +15,48 @@ export default function Order() {
   const [pizzaTypes, setPizzaTypes] = useState([]);
   const [cart, setCart] = useContext(CartContext);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   async function checkout() {
     setLoading(true);
 
-    await fetch('/api/order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ cart }),
-    });
+    try {
+      await fetch('/api/order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cart }),
+      });
 
-    setCart([]);
-    setLoading(false);
+      setCart([]);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      setError(`We couldn't load your order. Please try again later.`);
+      console.error(error);
+    }
   }
 
   useEffect(() => {
     async function fetchPizzaTypes() {
-      const pizzasRes = await fetch('/api/pizzas');
-      const pizzaJson = await pizzasRes.json();
-      setPizzaTypes(pizzaJson);
-      setLoading(false);
+      try {
+        const pizzasRes = await fetch('/api/pizzas');
+
+        if (pizzasRes.ok) {
+          const pizzaJson = await pizzasRes.json();
+          setPizzaTypes(pizzaJson);
+          setLoading(false);
+        } else {
+          setLoading(false);
+          setError(`Failed to load pizzas. Please try again later.`);
+          console.error(pizzasRes);
+        }
+      } catch (error) {
+        setLoading(false);
+        setError(`Failed to connect. Please check your internet connection.`);
+        console.error(error);
+      }
     }
 
     fetchPizzaTypes();
@@ -126,16 +146,24 @@ export default function Order() {
           {loading ? (
             <h3>LOADING …</h3>
           ) : (
-            <div className="order-pizza">
-              <Pizza
-                name={selectedPizza.name}
-                description={selectedPizza.description}
-                image={selectedPizza.image}
-              />
-              <p>{price}</p>
-            </div>
+            !error &&
+            selectedPizza && (
+              <div className="order-pizza">
+                <Pizza
+                  name={selectedPizza.name}
+                  description={selectedPizza.description}
+                  image={selectedPizza.image}
+                />
+                <p>{price}</p>
+              </div>
+            )
           )}
         </form>
+        {error && (
+          <div>
+            <p>{error}</p>
+          </div>
+        )}
       </div>
       {loading ? <h2>LOADING...</h2> : <Cart checkout={checkout} cart={cart} />}
     </div>
